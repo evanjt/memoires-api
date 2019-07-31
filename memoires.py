@@ -5,8 +5,11 @@ import os
 import json
 import datetime
 import functools
+import math
 
 TIMELINE_CHAR_LENGTH = 100
+DAYS_IN_MONTH = 31
+DAYS_IN_YEAR = 365
 
 class Person:
     def __init__(self, firstname=None, lastname=None, nickname=None, dob=None, nationality=None):
@@ -93,6 +96,9 @@ class Event:
                                  hour = self.on_hour,
                                  minute = self.on_minute)
 
+    def timeline_summary(self):
+        return "{} {}".format(self.datetime().date(), self.story)
+
     def __lt__(self, other):
         return ((self.on_year, self.on_month, self.on_day, self.on_minute) <
                 (other.on_year, other.on_month, other.on_day, other.on_minute))
@@ -112,27 +118,44 @@ class Timeline:
     def print_timeline(self):
         start_string = "[start] {}".format(self.start_date)
         end_string = "[end] {}".format(self.end_date)
+
+        day_delta = (self.end_date - self.start_date).days
+        month_delta = day_delta / DAYS_IN_MONTH
+        year_delta = day_delta / DAYS_IN_YEAR
+
+        print("{} days, {} months, {} years".format(day_delta,
+                                                    round(month_delta,2),
+                                                    round(year_delta),2))
+        if (day_delta / TIMELINE_CHAR_LENGTH) < 1:
+            step = ("Days", math.ceil(TIMELINE_CHAR_LENGTH / day_delta))
+        elif (month_delta / TIMELINE_CHAR_LENGTH) < 1:
+            step = ("Months", math.ceil(TIMELINE_CHAR_LENGTH / month_delta))
+        else:
+            step = ("Years", math.ceil(TIMELINE_CHAR_LENGTH / year_delta))
+
+        print("Scale: {} | Step: {}".format(step[0], str(round(step[1],2))))
+
+
         print(start_string)
         print("|")
-        for i in range(TIMELINE_CHAR_LENGTH):
-            print("=", end='')
+        [print("=", end="") for i in range(TIMELINE_CHAR_LENGTH)]
         print()
-        for i in range(TIMELINE_CHAR_LENGTH-1):
-            print(" ", end='')
+        [print(" ", end="") for i in range(TIMELINE_CHAR_LENGTH-1)]
         print("|")
-        for i in range(TIMELINE_CHAR_LENGTH-len(end_string)):
-            print(" ", end='')
+        [print(" ", end="") for i in range(TIMELINE_CHAR_LENGTH-len(end_string))]
         print(end_string)
         print()
-        for event in self.list_of_events:
-            print(event.datetime())
+
+
+        for idx, event in enumerate(self.list_of_events):
+            print("[{:2}] {}".format(idx, event.timeline_summary()))
 
 
 
 event_list = []
 event_list.append(Event("something happened here when", 1995, 4, 1, 12, 3))
-event_list.append(Event("something else happened here", 1999, 12, 4))
-event_list.append(Event("nothing happened", 1988, 2, 3, 16, 1))
+event_list.append(Event("something else happened here", 1996, 12, 4))
+event_list.append(Event("nothing happened", 1998, 2, 3, 16, 1))
 
 timeline1 = Timeline(event_list)
 timeline1.print_timeline()
