@@ -36,7 +36,7 @@ class MemoirOwner(Person):
     pass
 
 class Location:
-    def __init__(self, street=None, suburb=None, city=None, state=None, country=None, region=None, lat=None, lon=None):
+    def __init__(self, street=None, suburb=None, city=None, state=None, country=None, region=None, lat=None, lon=None, name=None):
         self.street = street
         self.suburb = suburb
         self.city = city
@@ -45,6 +45,7 @@ class Location:
         self.region = region
         self.lat = lat
         self.lon = lon
+        self.name = name
 
     def reproject(from_crs, to_crs):
         print("Nothing setup for this yet")
