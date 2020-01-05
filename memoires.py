@@ -6,6 +6,7 @@ import json
 import datetime
 import functools
 import math
+import memoires.database
 
 TIMELINE_CHAR_LENGTH = 100
 DAYS_IN_MONTH = 31
@@ -213,3 +214,9 @@ timeline1 = Timeline(event_list, memoire_owner)
 #print(timeline1.owner.birth_year)
 timeline1.print_timeline()
 timeline1.print_yearlist()
+
+## DATABASE stuff
+database = memoires.database.DBConnection('memoires.db')
+database.initialise_tables()
+
+database.insert_blackbox('inserted correctly')

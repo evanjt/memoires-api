@@ -107,9 +107,3 @@ class DBConnection:
             print("Inserted story into the blackbox")
         except sqlite3.Error:
             print("Error!")
-
-database = DBConnection('memoires.db')
-database.initialise_tables()
-
-database.insert_blackbox('inserted correctly')
-
