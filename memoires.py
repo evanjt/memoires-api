@@ -219,4 +219,7 @@ timeline1.print_yearlist()
 database = memoires.database.DBConnection('memoires.db')
 database.initialise_tables()
 
-database.insert_blackbox('inserted correctly')
+database.insert_blackbox('again the best')
+
+print("Blackbox list")
+database.fetch_blackbox()

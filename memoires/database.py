@@ -17,11 +17,11 @@ class DBConnection:
             self.conn = sqlite3.connect(self.filename, isolation_level=None)
         except sqlite3.Error as e:
             print(e)
-        print("Connected to", self.filename)
+        #print("Connected to", self.filename)
 
     def drop_connection(self):
         self.conn.close()
-        print("Disconnected from", self.filename)
+        #print("Disconnected from", self.filename)
 
     def create_table(self, create_table_sql):
         """ create a table from the create_table_sql statement
@@ -106,4 +106,17 @@ class DBConnection:
             self.drop_connection()
             print("Inserted story into the blackbox")
         except sqlite3.Error:
-            print("Error!")
+                print("Error!")
+
+    def fetch_blackbox(self):
+        sql = """ SELECT * FROM blackbox """
+        try:
+            self.create_connection()
+            cur = self.conn.cursor()
+            cur.execute(sql)
+            rows = cur.fetchall()
+            self.drop_connection()
+            for row in rows:
+                print("{}: {}".format(row[0],row[1]))
+        except:
+            print("Error in returning rows from blackbox")
