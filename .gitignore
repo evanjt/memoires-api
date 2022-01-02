@@ -1,2 +1,5 @@
-__pycache__/
-memoires.db
+.directory
+.kdev4/memoires.kdev4
+database.db
+memoires.kdev4
+__pycache__
