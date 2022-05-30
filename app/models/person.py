@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from .item import Item  # noqa: F401
 
 
-class User(Base):
+class Person(Base):
     id = Column(Integer, primary_key=True, index=True)
     full_name = Column(String, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
