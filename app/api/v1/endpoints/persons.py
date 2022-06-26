@@ -1,8 +1,9 @@
 from typing import Any, List
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Response, Query
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
+from typing import Optional
 from sqlalchemy.orm import Session
 
 from app import crud, models
@@ -13,42 +14,49 @@ from app.core.config import settings
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.Person])
-def read_users(
+@router.get("", response_model=List[schemas.Person])
+def read_persons(
+    *,
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    response: Response,
+    filter: Optional[str] = Query(None),
+    range: Optional[str] = Query(None),
+    sort: Optional[str] = Query(None),
     #current_user: models.User = Depends(deps.get_current_active_superuser),
-) -> Any:
-    """
-    Retrieve users.
-    """
-    users = crud.person.get_multi(db, skip=skip, limit=limit)
-    return users
+) -> List[schemas.Person]:
+    """ Retrieve persons """
+
+    objs = crud.person.get_multi(db, skip=skip, limit=limit)
+
+    response.headers["Content-Range"] = f"persons {skip}-{skip+limit}/{str(len(objs))}"
+    response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+
+    return objs
 
 
-#@router.post("/", response_model=schemas.User)
-#def create_user(
-    #*,
-    #db: Session = Depends(deps.get_db),
-    #user_in: schemas.UserCreate,
+@router.post("", response_model=schemas.Person)
+def create_person(
+    *,
+    db: Session = Depends(deps.get_db),
+    person_in: schemas.PersonCreate,
     #current_user: models.User = Depends(deps.get_current_active_superuser),
-#) -> Any:
-    #"""
-    #Create new user.
-    #"""
-    #user = crud.user.get_by_email(db, email=user_in.email)
-    #if user:
-        #raise HTTPException(
-            #status_code=400,
-            #detail="The user with this username already exists in the system.",
-        #)
-    #user = crud.user.create(db, obj_in=user_in)
+) -> schemas.Person:
+    """ Create new person """
+
+    person = crud.person.get_by_email(db, email=person_in.email)
+    if person:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this username already exists in the system.",
+        )
+    person = crud.person.create(db, obj_in=person_in)
     #if settings.EMAILS_ENABLED and user_in.email:
         #send_new_account_email(
-            #email_to=user_in.email, username=user_in.email, password=user_in.password
+            #email_to=person.email, username=person.email, password=person.password
         #)
-    #return user
+    return person
 
 
 #@router.put("/me", response_model=schemas.User)

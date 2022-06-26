@@ -1,2 +1,2 @@
-from .crud_item import item
-from .crud_person import person
+from .event import event
+from .person import person

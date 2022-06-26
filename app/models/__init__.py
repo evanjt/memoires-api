@@ -1,2 +1,2 @@
-from .item import Item
+from .event import Event
 from .person import Person

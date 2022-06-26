@@ -1,39 +1,40 @@
-from typing import Optional
-
+from typing import Optional, List
+from fastapi import UploadFile
 from pydantic import BaseModel
 
 
 # Shared properties
-class ItemBase(BaseModel):
+class EventBase(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
 
 
 # Properties to receive on item creation
-class ItemCreate(ItemBase):
+class EventCreate(EventBase):
     title: str
+    #pictures: Optional[UploadFile]
 
 
 # Properties to receive on item update
-class ItemUpdate(ItemBase):
+class EventUpdate(EventBase):
     pass
 
 
 # Properties shared by models stored in DB
-class ItemInDBBase(ItemBase):
+class EventInDBBase(EventBase):
     id: int
     title: str
-    owner_id: int
+    #owner_id: int
 
     class Config:
         orm_mode = True
 
 
 # Properties to return to client
-class Item(ItemInDBBase):
+class Event(EventInDBBase):
     pass
 
 
 # Properties properties stored in DB
-class ItemInDB(ItemInDBBase):
+class EventInDB(EventInDBBase):
     pass

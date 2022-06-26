@@ -15,13 +15,15 @@ class CRUDPerson(CRUDBase[Person, PersonCreate, PersonUpdate]):
     def create(self, db: Session, *, obj_in: PersonCreate) -> Person:
         db_obj = Person(
             email=obj_in.email,
-            hashed_password=get_password_hash(obj_in.password),
-            full_name=obj_in.full_name,
-            is_superuser=obj_in.is_superuser,
+            #hashed_password=get_password_hash(obj_in.password),
+            first_names=obj_in.first_names,
+            #is_superuser=obj_in.is_superuser,
         )
+
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
+
         return db_obj
 
     def update(

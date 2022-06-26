@@ -4,14 +4,14 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
-from app.models.item import Item
-from app.api.v1.schemas.item import ItemCreate, ItemUpdate
+from app.models.event import Event
+from app.api.v1.schemas.event import EventCreate, EventUpdate
 
 
-class CRUDItem(CRUDBase[Item, ItemCreate, ItemUpdate]):
+class CRUDEvent(CRUDBase[Event, EventCreate, EventUpdate]):
     def create_with_owner(
-        self, db: Session, *, obj_in: ItemCreate, owner_id: int
-    ) -> Item:
+        self, db: Session, *, obj_in: EventCreate, owner_id: int
+    ) -> Event:
         obj_in_data = jsonable_encoder(obj_in)
         db_obj = self.model(**obj_in_data, owner_id=owner_id)
         db.add(db_obj)
@@ -21,14 +21,14 @@ class CRUDItem(CRUDBase[Item, ItemCreate, ItemUpdate]):
 
     def get_multi_by_owner(
         self, db: Session, *, owner_id: int, skip: int = 0, limit: int = 100
-    ) -> List[Item]:
+    ) -> List[Event]:
         return (
             db.query(self.model)
-            .filter(Item.owner_id == owner_id)
+            .filter(Event.owner_id == owner_id)
             .offset(skip)
             .limit(limit)
             .all()
         )
 
 
-item = CRUDItem(Item)
+event = CRUDEvent(Event)

@@ -5,15 +5,15 @@ from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, v
 
 
 class Settings(BaseSettings):
-    API_V1_STR: str = "/api/v1"
+    API_V1_STR: str = "/v1"
 
     PROJECT_NAME: str = "Memoires"
 
-    POSTGRES_SERVER: str
-    POSTGRES_USERNAME: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_PORT: str
-    POSTGRES_DB: str
+    POSTGRES_SERVER: str = 'localhost'
+    POSTGRES_USERNAME: str = 'username'
+    POSTGRES_PASSWORD: str = 'password'
+    POSTGRES_PORT: str = '5432'
+    POSTGRES_DB: str = 'memoires'
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
@@ -32,7 +32,12 @@ class Settings(BaseSettings):
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
     # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
+        "http://localhost",
+        "http://localhost:4200",
+        "http://localhost:3000",
+        "http://localhost:8080",
+        "http://local.dockertoolbox.tiangolo.com"]
 
 
     SMTP_TLS: bool = True
