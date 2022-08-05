@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Response, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 from app import crud, models
-from app.api import deps
+from app.api.dependencies import get_db
 from app.api.v1 import schemas
 
 router = APIRouter()
@@ -13,14 +13,13 @@ router = APIRouter()
 @router.get("", response_model=List[schemas.Event])
 def read_events(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
     response: Response,
     filter: Optional[str] = Query(None),
     range: Optional[str] = Query(None),
     sort: Optional[str] = Query(None),
-    #current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> List[schemas.Event]:
     """ Retrieve persons """
 
@@ -35,7 +34,7 @@ def read_events(
 @router.post("", response_model=schemas.Event)
 def create_item(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Session = Depends(get_db),
     item_in: schemas.EventCreate,
     #current_user: models.User = Depends(deps.get_current_active_user),
 ) -> schemas.Event:
@@ -51,7 +50,7 @@ def create_item(
 @router.get("/{id}", response_model=schemas.Event)
 def read_item(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Session = Depends(get_db),
     id: int,
     #current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:

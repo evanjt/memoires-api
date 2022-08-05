@@ -2,12 +2,10 @@ from typing import Generator
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.core.config import settings
+from app.config import settings
 
 
 engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)

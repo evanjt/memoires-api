@@ -7,9 +7,9 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app import crud, models
-from app.api import deps
+from app.api.dependencies import get_db
 from app.api.v1 import schemas
-from app.core.config import settings
+from app.config import settings
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get("", response_model=List[schemas.Person])
 def read_persons(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
     response: Response,
@@ -39,7 +39,7 @@ def read_persons(
 @router.post("", response_model=schemas.Person)
 def create_person(
     *,
-    db: Session = Depends(deps.get_db),
+    db: Session = Depends(get_db),
     person_in: schemas.PersonCreate,
     #current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> schemas.Person:

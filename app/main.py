@@ -3,8 +3,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.db.base import Base
 from app.api.v1.routes import router
-from app.core.config import settings
-from app.api.deps import engine
+from app.config import settings
+from app.api.dependencies import engine
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
