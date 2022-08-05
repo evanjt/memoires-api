@@ -10,7 +10,7 @@ from app.api.v1 import schemas
 router = APIRouter()
 
 
-@router.get("", response_model=List[schemas.Event])
+@router.get("", response_model=List[schemas.EventRead])
 def read_events(
     *,
     db: Session = Depends(get_db),
@@ -20,7 +20,7 @@ def read_events(
     filter: Optional[str] = Query(None),
     range: Optional[str] = Query(None),
     sort: Optional[str] = Query(None),
-) -> List[schemas.Event]:
+) -> List[schemas.EventRead]:
     """ Retrieve persons """
 
     objs = crud.event.get_multi(db, skip=skip, limit=limit)
@@ -31,23 +31,36 @@ def read_events(
     return objs
 
 
-@router.post("", response_model=schemas.Event)
+@router.post("", response_model=schemas.EventRead)
 def create_item(
     *,
     db: Session = Depends(get_db),
     item_in: schemas.EventCreate,
     #current_user: models.User = Depends(deps.get_current_active_user),
-) -> schemas.Event:
+) -> schemas.EventRead:
     """
     Create new event.
     """
+    owner_id = crud.person.get_db_id(db, uuid=item_in.owner)
+    
+    event = crud.event.create_with_owner(db=db, obj_in=item_in, 
+                                         owner_id=owner_id)
+    
+    
+    return schemas.EventRead(title=event.title,
+                             description=event.description,
+                             start_time=event.start_time,
+                             end_time=event.end_time,
+                             owner=schemas.PersonRead(
+                                 uuid=event.owner.uuid,
+                                 first_names=event.owner.first_names,
+                                 last_names=event.owner.last_names,
+                                 email=event.owner.email
+                                 )
+                             )
 
-    event = crud.event.create(db=db, obj_in=item_in,)
-                                         #owner_id=current_user.id)
-    return event
 
-
-@router.get("/{id}", response_model=schemas.Event)
+@router.get("/{id}", response_model=schemas.EventRead)
 def read_item(
     *,
     db: Session = Depends(get_db),

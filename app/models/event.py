@@ -16,10 +16,10 @@ class Event(Base):
     __tablename__ = 'event'
 
     id = Column(Integer, primary_key=True, index=True)
-    uuid = Column(UUIDType, default=uuid.uuid4, unique=True, index=True, nullable=False)
+    uuid = Column(UUIDType, default=uuid.uuid4, unique=True, index=True, 
+                  nullable=False)
 
-    owner_id = Column(ForeignKey("person.id"),
-                      index=True, nullable=False)
+    owner_id = Column(ForeignKey("person.id"), index=True, nullable=False)
 
     title = Column(String, index=True)
     description = Column(String, index=True)

@@ -14,7 +14,7 @@ from app.config import settings
 router = APIRouter()
 
 
-@router.get("", response_model=List[schemas.Person])
+@router.get("", response_model=List[schemas.PersonRead])
 def read_persons(
     *,
     db: Session = Depends(get_db),
@@ -25,7 +25,7 @@ def read_persons(
     range: Optional[str] = Query(None),
     sort: Optional[str] = Query(None),
     #current_user: models.User = Depends(deps.get_current_active_superuser),
-) -> List[schemas.Person]:
+) -> List[schemas.PersonRead]:
     """ Retrieve persons """
 
     objs = crud.person.get_multi(db, skip=skip, limit=limit)
@@ -36,13 +36,13 @@ def read_persons(
     return objs
 
 
-@router.post("", response_model=schemas.Person)
+@router.post("", response_model=schemas.PersonRead)
 def create_person(
     *,
     db: Session = Depends(get_db),
     person_in: schemas.PersonCreate,
     #current_user: models.User = Depends(deps.get_current_active_superuser),
-) -> schemas.Person:
+) -> schemas.PersonRead:
     """ Create new person """
 
     person = crud.person.get_by_email(db, email=person_in.email)
@@ -52,11 +52,11 @@ def create_person(
             detail="The user with this username already exists in the system.",
         )
     person = crud.person.create(db, obj_in=person_in)
-    #if settings.EMAILS_ENABLED and user_in.email:
-        #send_new_account_email(
-            #email_to=person.email, username=person.email, password=person.password
-        #)
-    return person
+
+    return schemas.PersonRead(uuid=person.uuid,
+                              first_names=person.first_names,
+                              last_names=person.last_names,
+                              email=person.email)
 
 
 #@router.put("/me", response_model=schemas.User)

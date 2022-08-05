@@ -15,9 +15,8 @@ class CRUDPerson(CRUDBase[Person, PersonCreate, PersonUpdate]):
     def create(self, db: Session, *, obj_in: PersonCreate) -> Person:
         db_obj = Person(
             email=obj_in.email,
-            #hashed_password=get_password_hash(obj_in.password),
             first_names=obj_in.first_names,
-            #is_superuser=obj_in.is_superuser,
+            last_names=obj_in.last_names,
         )
 
         db.add(db_obj)

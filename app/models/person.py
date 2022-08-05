@@ -16,14 +16,11 @@ class Person(Base):
     __tablename__ = 'person'
 
     id = Column(Integer, primary_key=True, index=True)
-    uuid = Column(UUIDType, default=uuid.uuid4, unique=True, index=True, nullable=False)
+    uuid = Column(UUIDType, default=uuid.uuid4, 
+                  unique=True, index=True, nullable=False)
     first_names = Column(String, index=True)
     last_names = Column(String, index=True)
     email = Column(String, unique=True, index=True, nullable=True)
-
-    #hashed_password = Column(String, nullable=False)
-    #is_active = Column(Boolean(), default=True)
-    #is_superuser = Column(Boolean(), default=False)
 
     events_associated = relationship("PersonEvents", back_populates="person")
     events_owned = relationship("Event", back_populates="owner")
