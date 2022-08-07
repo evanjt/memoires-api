@@ -6,11 +6,11 @@ import datetime
 # Shared properties
 class PersonBase(BaseModel):
     email: Optional[EmailStr] = None
-    is_active: Optional[bool] = True
+    #is_active: Optional[bool] = True
     first_names: Optional[str] = None
     last_names: Optional[str] = None
-    alternative_names: Optional[str] = None
-    birth_date: Optional[datetime.date] = None
+    #alternative_names: Optional[str] = None
+    #birth_date: Optional[datetime.date] = None
 
 
 # Properties to receive via API on creation

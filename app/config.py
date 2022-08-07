@@ -1,14 +1,9 @@
 import secrets
 from typing import Any, Dict, List, Optional, Union
-
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, validator
 
 
-class Settings(BaseSettings):
-    API_V1_STR: str = "/v1"
-
-    PROJECT_NAME: str = "Memoires"
-
+class PostgresSettings(BaseSettings):
     POSTGRES_SERVER: str = 'localhost'
     POSTGRES_USERNAME: str = 'username'
     POSTGRES_PASSWORD: str = 'password'
@@ -28,7 +23,11 @@ class Settings(BaseSettings):
             port=values.get("POSTGRES_PORT"),
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
-
+    
+class ApplicationSettings(BaseSettings):
+    API_V1_STR: str = "/v1"
+    PROJECT_NAME: str = "Memoires"
+    
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
     # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'
@@ -37,10 +36,14 @@ class Settings(BaseSettings):
         "http://localhost:4200",
         "http://localhost:3000",
         "http://localhost:8080",
-        "http://local.dockertoolbox.tiangolo.com"]
+        ]
 
     class Config:
         case_sensitive = True
+
+    
+class Settings(PostgresSettings, ApplicationSettings):
+    pass
 
 
 settings = Settings()
