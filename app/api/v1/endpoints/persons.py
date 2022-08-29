@@ -49,7 +49,7 @@ def create_person(
     if person:
         raise HTTPException(
             status_code=400,
-            detail="The user with this username already exists in the system.",
+            detail="The person with this username already exists in the system.",
         )
     person = crud.person.create(db, obj_in=person_in)
     #if settings.EMAILS_ENABLED and user_in.email:
