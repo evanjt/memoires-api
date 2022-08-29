@@ -1,7 +1,7 @@
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 from sqlalchemy.orm import Session
 
 from app.db.base_class import Base
@@ -64,3 +64,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.delete(obj)
         db.commit()
         return obj
+    
+    def get_db_id(self, db: Session, *, uuid: UUID4) -> int:
+        obj = db.query(self.model).filter(self.model.uuid==uuid).first()
+        
+        return obj.id
+        
+        
