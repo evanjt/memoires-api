@@ -1,5 +1,5 @@
 import secrets
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Tuple
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, validator
 
 
@@ -24,6 +24,15 @@ class PostgresSettings(BaseSettings):
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
     
+    
+class MinioSettings(BaseSettings):
+    MINIO_ADDR: str 
+    MINIO_PORT: int 
+    MINIO_ACCESS_KEY: str
+    MINIO_ACCESS_PASSWORD: str
+    MINIO_SSL: bool
+    
+    
 class ApplicationSettings(BaseSettings):
     API_V1_STR: str = "/v1"
     PROJECT_NAME: str = "Memoires"
@@ -38,11 +47,12 @@ class ApplicationSettings(BaseSettings):
         "http://localhost:8080",
         ]
 
+    MAX_THUMBNAIL_SIZE: Tuple[int, int] = (800, 800)
     class Config:
         case_sensitive = True
 
     
-class Settings(PostgresSettings, ApplicationSettings):
+class Settings(PostgresSettings, ApplicationSettings, MinioSettings):
     pass
 
 

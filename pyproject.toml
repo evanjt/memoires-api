@@ -13,6 +13,9 @@ pydantic = "^1.9.1"
 email-validator = "^1.2.1"
 psycopg2 = "^2.9.3"
 SQLAlchemy-Utils = "^0.38.2"
+minio = "^7.1.12"
+python-multipart = "^0.0.5"
+Pillow = "^9.2.0"
 
 [tool.poetry.dev-dependencies]
 pycodestyle = "^2.8.0"
@@ -21,6 +24,7 @@ pytest = "^7.1.2"
 requests = "^2.27.1"
 pytest-watch = "^4.2.0"
 ptw = "^1.0.1"
+jupyter = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

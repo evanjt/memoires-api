@@ -23,12 +23,31 @@ services:
             POSTGRES_USERNAME: ${POSTGRES_USERNAME}
             POSTGRES_DB: ${POSTGRES_DB}
             POSTGRES_PORT: ${POSTGRES_PORT}
+            MINIO_ADDR: minio
+            MINIO_PORT: 9000
+            MINIO_ACCESS_KEY: minio-root-user
+            MINIO_ACCESS_PASSWORD: minio-root-password
+            MINIO_SSL: false
+            
         ports:
             - 8000:8000
         depends_on:
             - memoires-db
         volumes:
             - ./app:/src/app
+            
+    minio:
+        image: bitnami/minio:latest
+        volumes:
+            - ./data:/data
+        ports:
+            - '9000:9000'
+            - '9001:9001'
+        environment:
+            - MINIO_ROOT_USER=minio-root-user
+            - MINIO_ROOT_PASSWORD=minio-root-password
+            - MINIO_FORCE_NEW_KEYS=yes
+    
 
 volumes:
     memoires-postgres:
