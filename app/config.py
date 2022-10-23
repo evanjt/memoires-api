@@ -31,6 +31,7 @@ class MinioSettings(BaseSettings):
     MINIO_ACCESS_KEY: str
     MINIO_ACCESS_PASSWORD: str
     MINIO_SSL: bool
+    MINIO_BUCKET: str = 'memoires'
 
 
 class ApplicationSettings(BaseSettings):

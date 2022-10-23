@@ -1,7 +1,7 @@
 from fastapi import (
     APIRouter, Depends, HTTPException, UploadFile, File, Request, status)
 from sqlalchemy.orm import Session
-from typing import Any, Generator, Dict
+from typing import Any, Generator, Dict, Tuple
 from app.api.dependencies import get_db, get_minio
 from minio import Minio
 from minio.error import S3Error
@@ -12,7 +12,9 @@ import io
 import json
 from pydantic import BaseModel, UUID4, Extra
 from app.models.photo import Photo
+from fastapi.exceptions import RequestValidationError
 from enum import Enum
+import datetime
 
 router = APIRouter()
 
@@ -23,9 +25,16 @@ ExifEnum = Enum(
 )
 
 
+class PhotoTime(BaseModel):
+    camera: datetime.datetime | None = None
+    gps: datetime.datetime | None = None
+    validated: datetime.datetime | None = None
+
+
 class PhotoAdd(BaseModel, extra=Extra.allow):
     image: UUID4
     thumbnail: UUID4
+    time: PhotoTime
     exif: Dict[ExifEnum, Any]
 
 
@@ -33,10 +42,17 @@ def add_new(
     db: Session,
     image: UUID4,
     thumbnail: UUID4,
+    camera_time: datetime.datetime | None = None,
+    gps_time: datetime.datetime | None = None,
+    validated_time: datetime.datetime | None = None,
 ) -> Photo:
+
     photo = Photo(
         image=image,
-        thumbnail=thumbnail
+        thumbnail=thumbnail,
+        camera_time=camera_time,
+        gps_time=gps_time,
+        validated_time=validated_time,
     )
 
     db.add(photo)
@@ -46,29 +62,19 @@ def add_new(
     return photo
 
 
-def get_image_data(
+def get_image(
     minio: Minio,
     image_uuid: UUID4
-) -> Generator:
-    try:
-        res = minio.get_object(
-            bucket_name='memoires',
-            object_name=image_uuid.replace('-', '')
-        )
-        with Image.open(res) as img:
-            return img
-    except S3Error as e:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, str(e))
-    finally:
-        res.close()
-        res.release_conn()
+) -> Image:
+    res = minio.get_object(
+        bucket_name=settings.MINIO_BUCKET,
+        object_name=image_uuid
+    )
+    return Image.open(res)
 
 
 def get_exif(
-    *,
-    request: Request,
-    minio: Minio = Depends(get_minio),
-    # image_uuid: UUID4
+    img: Image,
 ) -> Dict[ExifEnum, Any]:
 
     def ifd_rational_serializer(value):
@@ -77,7 +83,6 @@ def get_exif(
 
     exif_data = {}
     exif_data["GPSInfo"] = {}
-    img = get_image_data(minio, request.path_params["image_uuid"])
 
     exif = img._getexif()
     for k, v in exif.items():
@@ -107,16 +112,43 @@ def get_exif(
     return json.loads(serialised_obj)
 
 
-def get_metadata(
+def get(
     *,
     request: Request,
     db: Session = Depends(get_db),
 ) -> Photo:
-    try:
-        return db.query(Photo).filter(
-            Photo.image == request.path_params["image_uuid"]).one_or_none()
-    except S3Error as e:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, str(e))
+
+    return db.query(Photo).filter(
+        Photo.image == request.path_params["image_uuid"]).one()
+
+
+def get_time_taken(
+    exif: Dict[ExifEnum, Any],
+) -> Tuple[datetime.datetime, datetime.datetime] | Tuple[None, None]:
+    ''' Attempts to get the correct date that the image was taken '''
+
+    time = None
+
+    gps_data = exif.get('GPSInfo')
+    if gps_data:
+        if gps_data['GPSTimeStamp']:
+            hour, minute, second = list(map(int, gps_data['GPSTimeStamp']))
+
+        if gps_data['GPSDateStamp']:
+            year, month, day = list(map(int, gps_data['GPSDateStamp'].split(":")))
+
+        gpstime = datetime.datetime(year, month, day, hour, minute, second,
+                                    tzinfo=datetime.timezone.utc)
+
+    if exif.get('DateTimeOriginal'):
+        time = datetime.datetime.strptime(
+            exif.get('DateTimeOriginal'),
+            '%Y:%m:%d %H:%M:%S'
+        )
+
+
+    return time, gpstime
+
 
 
 @router.get("/{image_uuid}", response_model=PhotoAdd)
@@ -125,15 +157,21 @@ def get_image_metadata(
     image_uuid: UUID4,
     db: Session = Depends(get_db),
     minio: Minio = Depends(get_minio),
-    photo_metadata: Photo = Depends(get_metadata),
-    exif: PhotoAdd = Depends(get_exif),
+    photo: Photo = Depends(get),
 ):
+    exif = get_exif(get_image(minio, photo.image.hex))
 
     return PhotoAdd(
-        image=photo_metadata.image,
-        thumbnail=photo_metadata.thumbnail,
+        image=photo.image,
+        thumbnail=photo.thumbnail,
+        time=PhotoTime(
+            camera=photo.camera_time,
+            gps=photo.gps_time,
+            validated=photo.validated_time,
+            ),
         exif=exif
     )
+
 
 
 @router.post("")
@@ -148,7 +186,7 @@ def upload_photo(
 
     # Store original
     res = minio.put_object(
-        bucket_name='memoires',
+        bucket_name=settings.MINIO_BUCKET,
         object_name=uuid4().hex,
         data=contents,
         length=contents.getbuffer().nbytes)
@@ -161,18 +199,30 @@ def upload_photo(
 
         output.seek(0)
         thumbres = minio.put_object(
-            bucket_name='memoires',
+            bucket_name=settings.MINIO_BUCKET,
             object_name=uuid4().hex,
             data=output,
             length=output.getbuffer().nbytes)
 
+    exif = get_exif(get_image(minio, res.object_name))
+
+    camera_time, gps_time = get_time_taken(exif)
+
     photo = add_new(
         db=db,
         image=res.object_name,
-        thumbnail=thumbres.object_name
+        thumbnail=thumbres.object_name,
+        camera_time=camera_time,
+        gps_time=gps_time,
     )
 
     return PhotoAdd(
         image=photo.image,
-        thumbnail=photo.thumbnail
+        thumbnail=photo.thumbnail,
+        time=PhotoTime(
+            camera=photo.camera_time,
+            gps=photo.gps_time,
+            validated=photo.validated_time,
+            ),
+        exif=exif
     )

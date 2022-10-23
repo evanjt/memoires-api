@@ -1,10 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from starlette.middleware.cors import CORSMiddleware
 
 from app.db.base import Base
 from app.api.v1.routes import router
 from app.config import settings
 from app.api.dependencies import engine
+from fastapi.exceptions import RequestValidationError
+from minio.error import S3Error
+from sqlalchemy.exc import NoResultFound
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -28,3 +33,19 @@ async def startup_event():
     Base.metadata.create_all(engine)
 
 app.include_router(router, prefix=settings.API_V1_STR)
+
+@app.exception_handler(S3Error)
+async def validation_exception_handler(request: Request,
+                                       exc: S3Error):
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+    )
+
+@app.exception_handler(NoResultFound)
+async def validation_exception_handler(request: Request,
+                                       exc: NoResultFound):
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content=jsonable_encoder({"detail": str(exc)}),
+    )

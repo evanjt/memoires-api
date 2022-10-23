@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from sqlalchemy_utils import UUIDType
 import uuid
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -28,5 +28,23 @@ class Photo(Base):
         default=uuid.uuid4,
         unique=True,
         index=True,
-        nullable=False
+        nullable=True
+    )
+    camera_time = Column(
+        DateTime,
+        default=None,
+        index=True,
+        nullable=True
+    )
+    gps_time = Column(
+        DateTime,
+        default=None,
+        index=True,
+        nullable=True
+    )
+    validated_time = Column(
+        DateTime,
+        default=None,
+        index=True,
+        nullable=True
     )
