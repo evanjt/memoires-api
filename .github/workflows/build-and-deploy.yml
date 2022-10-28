@@ -3,12 +3,7 @@ name: CI
 # 1
 # Controls when the workflow will run
 on:
-  [push]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Image version'
-        required: true
+  push
 #2
 env:
   REGISTRY: "registry.digitalocean.com/evanjt"
