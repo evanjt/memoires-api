@@ -48,3 +48,8 @@ class Photo(Base):
         index=True,
         nullable=True
     )
+    checksum_blake2 = Column(
+        String,
+        index=True,
+        nullable=False
+        )
