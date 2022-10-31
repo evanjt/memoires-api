@@ -1,5 +1,7 @@
 from fastapi import (
-    APIRouter, Depends, HTTPException, UploadFile, File, Request, status)
+    APIRouter, Depends, HTTPException, UploadFile, File, Request, status,
+    Query, Path)
+from fastapi.responses import Response, FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Any, Generator, Dict, Tuple
 from app.api.dependencies import get_db, get_minio
@@ -31,19 +33,26 @@ class PhotoTime(BaseModel):
     gps: datetime.datetime | None = None
     validated: datetime.datetime | None = None
 
-
-class PhotoAdd(BaseModel, extra=Extra.allow):
-    image: UUID4
+class PhotoBase(BaseModel):
+    original: UUID4
     thumbnail: UUID4
     time: PhotoTime
+    content_type: str
+
+class PhotoAdd(PhotoBase, extra=Extra.allow):
+    exif: Dict[ExifEnum, Any] | None
+
+class PhotoRead(PhotoBase, extra=Extra.allow):
+    uuid: UUID4
     exif: Dict[ExifEnum, Any] | None
     duplicate: bool
 
 
 def add_new(
     db: Session,
-    image: UUID4,
+    original: UUID4,
     thumbnail: UUID4,
+    content_type: str,
     checksum: str,
     camera_time: datetime.datetime | None = None,
     gps_time: datetime.datetime | None = None,
@@ -51,8 +60,10 @@ def add_new(
 ) -> Photo:
 
     photo = Photo(
-        image=image,
+        uuid=uuid4(),   # Generate a new UUID
+        original=original,    # The UUID of the original
         thumbnail=thumbnail,
+        content_type=content_type,
         camera_time=camera_time,
         gps_time=gps_time,
         validated_time=validated_time,
@@ -70,10 +81,12 @@ def get_image(
     minio: Minio,
     image_uuid: UUID4
 ) -> Image:
+    ''' Works with either an original or the thumbnail uuid '''
     res = minio.get_object(
         bucket_name=settings.MINIO_BUCKET,
         object_name=image_uuid
     )
+
     return Image.open(res)
 
 
@@ -124,7 +137,7 @@ def get(
 ) -> Photo:
 
     return db.query(Photo).filter(
-        Photo.image == request.path_params["image_uuid"]).one()
+        Photo.uuid == request.path_params["photo_uuid"]).one()
 
 
 def get_from_checksum(
@@ -163,19 +176,20 @@ def get_time_taken(
     return time, gpstime
 
 
-@router.get("/{image_uuid}", response_model=PhotoAdd)
-def get_image_metadata(
+@router.get("/{photo_uuid}/metadata", response_model=PhotoAdd)
+def get_metadata(
     *,
-    image_uuid: UUID4,
+    photo_uuid: UUID4,
     db: Session = Depends(get_db),
     minio: Minio = Depends(get_minio),
     photo: Photo = Depends(get),
 ):
-    exif = get_exif(get_image(minio, photo.image.hex))
+    exif = get_exif(get_image(minio, photo.original.hex))
 
     return PhotoAdd(
-        image=photo.image,
+        original=photo.original,
         thumbnail=photo.thumbnail,
+        content_type=photo.content_type,
         time=PhotoTime(
             camera=photo.camera_time,
             gps=photo.gps_time,
@@ -184,8 +198,31 @@ def get_image_metadata(
         exif=exif
     )
 
+@router.get("/{photo_uuid}")
+def get_photo_image(
+    *,
+    photo_uuid: UUID4,
+    thumbnail: bool = Query(False, title="Get thumbnail"),
+    db: Session = Depends(get_db),
+    minio: Minio = Depends(get_minio),
+    photo: Photo = Depends(get),
+):
+    if thumbnail:
+        res = minio.get_object(
+            bucket_name=settings.MINIO_BUCKET,
+            object_name=photo.thumbnail.hex
+        )
+        return StreamingResponse(res.stream(), media_type='image/jpeg')
+    else:
+        res = minio.get_object(
+            bucket_name=settings.MINIO_BUCKET,
+            object_name=photo.original.hex
+        )
+        return StreamingResponse(res.stream(), media_type=photo.content_type)
 
-@router.post("", response_model=PhotoAdd)
+
+
+@router.post("", response_model=PhotoRead)
 def upload_photo(
     file: UploadFile = File(...),
     *,
@@ -194,6 +231,7 @@ def upload_photo(
 ) -> PhotoAdd:
 
     contents = io.BytesIO(file.file.read())
+    print(file.content_type)
     if file.content_type.split('/')[0] != 'image':
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -217,7 +255,7 @@ def upload_photo(
             data=contents,
             length=contents.getbuffer().nbytes)
 
-
+        # Create and store a thumbnail
         contents.seek(0)
         output = io.BytesIO()
         with Image.open(contents) as img:
@@ -237,8 +275,9 @@ def upload_photo(
 
         photo = add_new(
             db=db,
-            image=res.object_name,
+            original=res.object_name,
             thumbnail=thumbres.object_name,
+            content_type=file.content_type,
             camera_time=camera_time,
             gps_time=gps_time,
             checksum=checksum,
@@ -246,12 +285,14 @@ def upload_photo(
 
     else:
         # Get exif again (incase of duplicate) -- temporarily
-        exif = get_exif(get_image(minio, photo.image.hex))
+        exif = get_exif(get_image(minio, photo.original.hex))
 
-    return PhotoAdd(
+    return PhotoRead(
+        uuid=photo.uuid,
         duplicate=duplicate,
-        image=photo.image,
+        original=photo.original,
         thumbnail=photo.thumbnail,
+        content_type=photo.content_type,
         time=PhotoTime(
             camera=photo.camera_time,
             gps=photo.gps_time,

@@ -10,6 +10,8 @@ services:
             POSTGRES_DB: ${POSTGRES_DB}
         volumes:
             - memoires-postgres:/var/lib/postgresql/data
+        networks:
+            - memoires
         ports:
             - ${POSTGRES_PORT}:5432
 
@@ -28,19 +30,22 @@ services:
             MINIO_ACCESS_KEY: minio-root-user
             MINIO_ACCESS_PASSWORD: minio-root-password
             MINIO_SSL: false
-            
+        networks:
+            - memoires
         ports:
             - 8000:8000
         depends_on:
             - memoires-db
         volumes:
             - ./app:/src/app
-            
+
     minio:
         image: bitnami/minio:latest
         volumes:
             - memoires-minio:/data
             #- ./data:/data
+        networks:
+            - memoires
         ports:
             - '9000:9000'
             - '9001:9001'
@@ -52,3 +57,6 @@ services:
 volumes:
     memoires-postgres:
     memoires-minio:
+
+networks:
+    memoires:

@@ -16,16 +16,25 @@ class Photo(Base):
         primary_key=True,
         index=True
     )
-    image = Column(
+    uuid = Column(
         UUIDType,
         default=uuid.uuid4,
         unique=True,
         index=True,
         nullable=False
     )
+    original = Column(
+        UUIDType,
+        unique=True,
+        index=True,
+        nullable=False
+    )
+    content_type = Column(
+        String,
+        nullable=False
+    )
     thumbnail = Column(
         UUIDType,
-        default=uuid.uuid4,
         unique=True,
         index=True,
         nullable=True

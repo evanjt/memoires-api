@@ -4,10 +4,10 @@ from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, v
 
 
 class PostgresSettings(BaseSettings):
-    POSTGRES_SERVER: str = 'localhost'
+    POSTGRES_SERVER: str = 'memoires-db'
     POSTGRES_USERNAME: str = 'memoires'
     POSTGRES_PASSWORD: str = 'memoires'
-    POSTGRES_PORT: str = '2432'
+    POSTGRES_PORT: str = '5432'
     POSTGRES_DB: str = 'memoires'
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
@@ -31,8 +31,8 @@ class PostgresSettings(BaseSettings):
 
 
 class MinioSettings(BaseSettings):
-    MINIO_ADDR: str = 'localhost'
-    MINIO_PORT: int = 2000
+    MINIO_ADDR: str = 'memoires-minio'
+    MINIO_PORT: int = 9000
     MINIO_ACCESS_KEY: str = 'memoires'
     MINIO_ACCESS_PASSWORD: str = 'memoires'
     MINIO_SSL: bool = False
