@@ -6,7 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.db.base import Base
 from app.api.v1.routes import router
 from app.config import settings
-from app.api.dependencies import engine
+from app.api.dependencies import engine, get_db
 from fastapi.exceptions import RequestValidationError
 from minio.error import S3Error
 from sqlalchemy.exc import NoResultFound
@@ -28,9 +28,9 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
-@app.on_event("startup")
-async def startup_event():
-    Base.metadata.create_all(engine)
+# @app.on_event("startup")
+# async def startup_event():
+    # Base.metadata.create_all(engine)
 
 app.include_router(router, prefix=settings.API_V1_STR)
 

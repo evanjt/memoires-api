@@ -12,7 +12,12 @@ class PostgresSettings(BaseSettings):
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    def assemble_db_connection(
+        cls, 
+        v: Optional[str], 
+        values: Dict[str, Any]
+    ) -> PostgresDsn:
+        
         if isinstance(v, str):
             return v
         return PostgresDsn.build(
@@ -26,11 +31,11 @@ class PostgresSettings(BaseSettings):
 
 
 class MinioSettings(BaseSettings):
-    MINIO_ADDR: str
-    MINIO_PORT: int
-    MINIO_ACCESS_KEY: str
-    MINIO_ACCESS_PASSWORD: str
-    MINIO_SSL: bool
+    MINIO_ADDR: str = 'localhost'
+    MINIO_PORT: int = 9000
+    MINIO_ACCESS_KEY: str = 'username'
+    MINIO_ACCESS_PASSWORD: str = 'password'
+    MINIO_SSL: bool = False
     MINIO_BUCKET: str = 'memoires'
 
 

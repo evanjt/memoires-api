@@ -25,6 +25,11 @@ requests = "^2.27.1"
 pytest-watch = "^4.2.0"
 ptw = "^1.0.1"
 jupyter = "^1.0.0"
+moto = "^4.0.8"
+aiobotocore = "^2.4.0"
+aioboto3 = "^10.1.0"
+pytest-aiomoto = "^0.6.1"
+s3fs = "^2022.10.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
