@@ -11,10 +11,9 @@ from app.api.v1.schemas.person import PersonCreate
 def test_create_person(
     client: TestClient,
     #superuser_token_headers: dict,
-    db: Session
 ) -> None:
 
-    data = {"email": 'user@domain.com', 
+    data = {"email": 'user@domain.com',
             "first_names": "Steve",
             "last_names": "Johnston"}
 

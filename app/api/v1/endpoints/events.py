@@ -39,11 +39,11 @@ def create_event(
 ) -> schemas.EventRead:
     """ Create new event. """
     owner_id = crud.person.get_db_id(db, uuid=item_in.owner)
-    
-    event = crud.event.create_with_owner(db=db, obj_in=item_in, 
+
+    event = crud.event.create_with_owner(db=db, obj_in=item_in,
                                          owner_id=owner_id)
-    
-    
+
+
     return schemas.EventRead(title=event.title,
                              description=event.description,
                              start_time=event.start_time,

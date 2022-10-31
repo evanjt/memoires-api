@@ -3,7 +3,7 @@ version: '3.8'
 services:
     memoires-db:
         image: bitnami/postgresql:14.3.0
-        container_name: memoires-db
+#        container_name: memoires-db
         environment:
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             POSTGRES_USERNAME: ${POSTGRES_USERNAME}
@@ -15,7 +15,7 @@ services:
 
     memoires-api:
         build: .
-        image: memoires
+#        image: registry.digitalocean.com/evanjt/memoires-api
         container_name: memoires-api
         environment:
             POSTGRES_SERVER: memoires-db

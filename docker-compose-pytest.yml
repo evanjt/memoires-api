@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+    memoires-db:
+        image: bitnami/postgresql:14.3.0
+        environment:
+            POSTGRES_PASSWORD: memoires
+            POSTGRES_USERNAME: memoires
+            POSTGRES_DB: memoires
+        ports:
+            - 5432:5432
+
+    memoires-api:
+        build:
+            context: .
+            dockerfile: Dockerfile-pytest
+        environment:
+            POSTGRES_SERVER: memoires-db
+            POSTGRES_PASSWORD: memoires
+            POSTGRES_USERNAME: memoires
+            POSTGRES_DB: memoires
+            POSTGRES_PORT: 5432
+            MINIO_ADDR: memoires-minio
+            MINIO_PORT: 9000
+            MINIO_ACCESS_KEY: memoires
+            MINIO_ACCESS_PASSWORD: memoires
+            MINIO_SSL: false
+        ports:
+            - 8000:8000
+        depends_on:
+            - memoires-db
+            - memoires-minio
+        volumes:
+            - ./app:/src/app
+
+    memoires-minio:
+        image: bitnami/minio:latest
+        ports:
+            - '9000:9000'
+            - '9001:9001'
+        environment:
+            - MINIO_ROOT_USER=memoires
+            - MINIO_ROOT_PASSWORD=memoires
+            - MINIO_DEFAULT_BUCKETS=memoires
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+            interval: 30s
+            timeout: 20s
+            retries: 3

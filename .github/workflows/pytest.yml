@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push
+
+# Run pytest from docker compose
+jobs:
+  docker:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Start containers
+      run: docker compose -f docker-compose-pytest.yml run --entrypoint pytest memoires-api

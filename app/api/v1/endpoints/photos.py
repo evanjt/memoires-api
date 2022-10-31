@@ -146,14 +146,12 @@ def get_time_taken(
 
     gps_data = exif.get('GPSInfo')
     if gps_data:
-        if gps_data['GPSTimeStamp']:
+        if gps_data.get('GPSTimeStamp') and gps_data.get('GPSDateStamp'):
             hour, minute, second = list(map(int, gps_data['GPSTimeStamp']))
-
-        if gps_data['GPSDateStamp']:
             year, month, day = list(map(int, gps_data['GPSDateStamp'].split(":")))
 
-        gpstime = datetime.datetime(year, month, day, hour, minute, second,
-                                    tzinfo=datetime.timezone.utc)
+            gpstime = datetime.datetime(year, month, day, hour, minute, second,
+                                        tzinfo=datetime.timezone.utc)
 
     if exif.get('DateTimeOriginal'):
         time = datetime.datetime.strptime(
@@ -163,7 +161,6 @@ def get_time_taken(
 
 
     return time, gpstime
-
 
 
 @router.get("/{image_uuid}", response_model=PhotoAdd)

@@ -8,7 +8,6 @@ from sqlalchemy.orm import sessionmaker
 from app.config import settings
 from minio import Minio
 
-
 engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -19,6 +18,7 @@ minio = Minio(
     secure=False
 )
 
+
 def get_db() -> Generator:
     try:
         db = SessionLocal()
@@ -26,5 +26,5 @@ def get_db() -> Generator:
     finally:
         db.close()
 
-def get_minio() -> Minio:
+async def get_minio() -> Minio:
     return minio
