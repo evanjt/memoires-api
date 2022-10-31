@@ -5,19 +5,19 @@ from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, v
 
 class PostgresSettings(BaseSettings):
     POSTGRES_SERVER: str = 'localhost'
-    POSTGRES_USERNAME: str = 'username'
-    POSTGRES_PASSWORD: str = 'password'
-    POSTGRES_PORT: str = '5432'
+    POSTGRES_USERNAME: str = 'memoires'
+    POSTGRES_PASSWORD: str = 'memoires'
+    POSTGRES_PORT: str = '2432'
     POSTGRES_DB: str = 'memoires'
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(
-        cls, 
-        v: Optional[str], 
+        cls,
+        v: Optional[str],
         values: Dict[str, Any]
     ) -> PostgresDsn:
-        
+
         if isinstance(v, str):
             return v
         return PostgresDsn.build(
@@ -32,9 +32,9 @@ class PostgresSettings(BaseSettings):
 
 class MinioSettings(BaseSettings):
     MINIO_ADDR: str = 'localhost'
-    MINIO_PORT: int = 9000
-    MINIO_ACCESS_KEY: str = 'username'
-    MINIO_ACCESS_PASSWORD: str = 'password'
+    MINIO_PORT: int = 2000
+    MINIO_ACCESS_KEY: str = 'memoires'
+    MINIO_ACCESS_PASSWORD: str = 'memoires'
     MINIO_SSL: bool = False
     MINIO_BUCKET: str = 'memoires'
 

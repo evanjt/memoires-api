@@ -6,7 +6,6 @@ from app.config import settings
 
 def test_create_event(
     client: TestClient,
-    db: Session
 ) -> None:
 
     person = {"first_names": "test_create_event1",
@@ -16,7 +15,7 @@ def test_create_event(
     res_person = client.post(f"{settings.API_V1_STR}/persons", json=person)
     assert res_person.status_code == 200, f"{res_person.json()}"
 
-    event = {"title": 'Visit museum', 
+    event = {"title": 'Visit museum',
             "description": "Went to the museum for a few hours, saw a lot "
                            "of paintings",
             "start_time": "2022-01-14T07:00:00",
@@ -31,7 +30,7 @@ def test_create_event(
     assert created_event["description"] == event['description']
     assert created_event["start_time"] == event['start_time']
     assert created_event["end_time"] == event['end_time']
-    
+
     assert created_event["owner"]["first_names"] == person['first_names']
     assert created_event["owner"]["last_names"] == person['last_names']
     assert created_event["owner"]["email"] == person['email']

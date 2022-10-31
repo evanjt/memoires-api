@@ -9,6 +9,7 @@ from app.config import settings
 from app.api.dependencies import engine, get_db
 from fastapi.exceptions import RequestValidationError
 from minio.error import S3Error
+from app.api.dependencies import minio
 from sqlalchemy.exc import NoResultFound
 
 app = FastAPI(
@@ -28,9 +29,14 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
-# @app.on_event("startup")
-# async def startup_event():
-    # Base.metadata.create_all(engine)
+@app.on_event("startup")
+async def startup_event():
+
+    Base.metadata.create_all(engine)
+
+    # Create the bucket if it's not there
+    if not minio.bucket_exists(settings.MINIO_BUCKET):
+        minio.make_bucket(settings.MINIO_BUCKET)
 
 app.include_router(router, prefix=settings.API_V1_STR)
 
