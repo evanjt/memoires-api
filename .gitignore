@@ -6,3 +6,5 @@ __pycache__
 *.kdev4
 .env
 *.kate-swp
+*ipynb*
+data/

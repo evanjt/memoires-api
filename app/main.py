@@ -12,6 +12,10 @@ from minio.error import S3Error
 from app.api.dependencies import minio
 from sqlalchemy.exc import NoResultFound
 
+from app.events.views import router as events
+from app.persons.views import router as persons
+from app.photos.views import router as photos
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
@@ -38,7 +42,6 @@ async def startup_event():
     if not minio.bucket_exists(settings.MINIO_BUCKET):
         minio.make_bucket(settings.MINIO_BUCKET)
 
-app.include_router(router, prefix=settings.API_V1_STR)
 
 @app.exception_handler(S3Error)
 async def validation_exception_handler(request: Request,
@@ -55,3 +58,22 @@ async def validation_exception_handler(request: Request,
         status_code=status.HTTP_404_NOT_FOUND,
         content=jsonable_encoder({"detail": str(exc)}),
     )
+
+app.include_router(router, prefix=settings.API_V1_STR)
+
+app.include_router(
+    persons.router, 
+    prefix="/persons", 
+    tags=["Persons"]
+)
+app.include_router(
+    events.router, 
+    prefix="/events", 
+    tags=["Events"]
+)
+app.include_router(
+    photos.router, 
+    prefix="/photos", 
+    tags=["Photos"]
+)
+
