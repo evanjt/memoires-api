@@ -4,39 +4,37 @@ from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, v
 
 
 class PostgresSettings(BaseSettings):
-    POSTGRES_SERVER: str = 'memoires-db'
-    POSTGRES_USERNAME: str = 'memoires'
-    POSTGRES_PASSWORD: str = 'memoires'
-    POSTGRES_PORT: str = '5432'
-    POSTGRES_DB: str = 'memoires'
+    DB_HOST: str = "memoires-db"
+    DB_USER: str = "memoires"
+    DB_PASSWORD: str = "memoires"
+    DB_PORT: str = "5432"
+    DB_NAME: str = "memoires"
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(
-        cls,
-        v: Optional[str],
-        values: Dict[str, Any]
+        cls, v: Optional[str], values: Dict[str, Any]
     ) -> PostgresDsn:
 
         if isinstance(v, str):
             return v
         return PostgresDsn.build(
             scheme="postgresql",
-            user=values.get("POSTGRES_USERNAME"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            port=values.get("POSTGRES_PORT"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
+            user=values.get("DB_USER"),
+            password=values.get("DB_PASSWORD"),
+            host=values.get("DB_HOST"),
+            port=values.get("DB_PORT"),
+            path=f"/{values.get('DB_NAME') or ''}",
         )
 
 
 class MinioSettings(BaseSettings):
-    MINIO_ADDR: str = 'memoires-minio'
+    MINIO_ADDR: str = "memoires-minio"
     MINIO_PORT: int = 9000
-    MINIO_ACCESS_KEY: str = 'memoires'
-    MINIO_ACCESS_PASSWORD: str = 'memoires'
+    MINIO_ACCESS_KEY: str = "memoires"
+    MINIO_ACCESS_PASSWORD: str = "memoires"
     MINIO_SSL: bool = False
-    MINIO_BUCKET: str = 'memoires'
+    MINIO_BUCKET: str = "memoires"
 
 
 class ApplicationSettings(BaseSettings):
@@ -51,9 +49,10 @@ class ApplicationSettings(BaseSettings):
         "http://localhost:4200",
         "http://localhost:3000",
         "http://localhost:8080",
-        ]
+    ]
 
     MAX_THUMBNAIL_SIZE: Tuple[int, int] = (800, 800)
+
     class Config:
         case_sensitive = True
 
