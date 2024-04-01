@@ -1,6 +1,6 @@
 FROM python:3.10.8-alpine3.16
 
-ENV POETRY_VERSION=1.2.2
+ENV POETRY_VERSION=1.7.1
 RUN pip install "poetry==$POETRY_VERSION"
 
 WORKDIR /src

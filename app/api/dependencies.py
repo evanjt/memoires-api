@@ -11,6 +11,7 @@ from minio import Minio
 engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 def get_db() -> Generator:
     try:
         db = SessionLocal()
@@ -18,13 +19,14 @@ def get_db() -> Generator:
     finally:
         db.close()
 
-# Minio dependency
-minio = Minio(
-    f"{settings.MINIO_ADDR}:{settings.MINIO_PORT}",
-    access_key=settings.MINIO_ACCESS_KEY,
-    secret_key=settings.MINIO_ACCESS_PASSWORD,
-    secure=False
-)
 
-async def get_minio() -> Minio:
-    return minio
+# # Minio dependency
+# minio = Minio(
+#     f"{settings.MINIO_ADDR}:{settings.MINIO_PORT}",
+#     access_key=settings.MINIO_ACCESS_KEY,
+#     secret_key=settings.MINIO_ACCESS_PASSWORD,
+#     secure=False
+# )
+
+# async def get_minio() -> Minio:
+#     return minio

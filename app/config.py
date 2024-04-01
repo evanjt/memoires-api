@@ -1,6 +1,13 @@
 import secrets
 from typing import Any, Dict, List, Optional, Union, Tuple
-from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, validator
+from pydantic import (
+    AnyHttpUrl,
+    BaseSettings,
+    EmailStr,
+    HttpUrl,
+    PostgresDsn,
+    validator,
+)
 
 
 class PostgresSettings(BaseSettings):
@@ -28,13 +35,13 @@ class PostgresSettings(BaseSettings):
         )
 
 
-class MinioSettings(BaseSettings):
-    MINIO_ADDR: str = "memoires-minio"
-    MINIO_PORT: int = 9000
-    MINIO_ACCESS_KEY: str = "memoires"
-    MINIO_ACCESS_PASSWORD: str = "memoires"
-    MINIO_SSL: bool = False
-    MINIO_BUCKET: str = "memoires"
+# class MinioSettings(BaseSettings):
+#     MINIO_ADDR: str = "memoires-minio"
+#     MINIO_PORT: int = 9000
+#     MINIO_ACCESS_KEY: str = "memoires"
+#     MINIO_ACCESS_PASSWORD: str = "memoires"
+#     MINIO_SSL: bool = False
+#     MINIO_BUCKET: str = "memoires"
 
 
 class ApplicationSettings(BaseSettings):
@@ -57,7 +64,11 @@ class ApplicationSettings(BaseSettings):
         case_sensitive = True
 
 
-class Settings(PostgresSettings, ApplicationSettings, MinioSettings):
+class Settings(
+    PostgresSettings,
+    ApplicationSettings,
+    # MinioSettings,
+):
     pass
 
 
