@@ -1,75 +1,43 @@
-import secrets
-from typing import Any, Dict, List, Optional, Union, Tuple
-from pydantic import (
-    AnyHttpUrl,
-    BaseSettings,
-    EmailStr,
-    HttpUrl,
-    PostgresDsn,
-    validator,
-)
+from pydantic_settings import BaseSettings
+from pydantic import model_validator
+from functools import lru_cache
 
 
-class PostgresSettings(BaseSettings):
-    DB_HOST: str = "memoires-db"
-    DB_USER: str = "memoires"
-    DB_PASSWORD: str = "memoires"
-    DB_PORT: str = "5432"
-    DB_NAME: str = "memoires"
-    SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
+class Config(BaseSettings):
+    API_V1_PREFIX: str = "/v1"
 
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(
-        cls, v: Optional[str], values: Dict[str, Any]
-    ) -> PostgresDsn:
+    # PostGIS settings
+    DB_HOST: str
+    DB_PORT: int  # 5432
+    DB_USER: str
+    DB_PASSWORD: str
 
-        if isinstance(v, str):
-            return v
-        return PostgresDsn.build(
-            scheme="postgresql",
-            user=values.get("DB_USER"),
-            password=values.get("DB_PASSWORD"),
-            host=values.get("DB_HOST"),
-            port=values.get("DB_PORT"),
-            path=f"/{values.get('DB_NAME') or ''}",
-        )
+    DB_NAME: str  # postgres
+    DB_PREFIX: str  # "postgresql+asyncpg"
 
+    DB_URL: str | None = None
 
-# class MinioSettings(BaseSettings):
-#     MINIO_ADDR: str = "memoires-minio"
-#     MINIO_PORT: int = 9000
-#     MINIO_ACCESS_KEY: str = "memoires"
-#     MINIO_ACCESS_PASSWORD: str = "memoires"
-#     MINIO_SSL: bool = False
-#     MINIO_BUCKET: str = "memoires"
+    @model_validator(mode="before")
+    @classmethod
+    def form_db_url(cls, values: dict) -> dict:
+        """Form the DB URL from the settings"""
+        if "DB_URL" not in values:
+            values["DB_URL"] = (
+                "{prefix}://{user}:{password}@{host}:{port}/{db}".format(
+                    prefix=values.get("DB_PREFIX"),
+                    user=values.get("DB_USER"),
+                    password=values.get("DB_PASSWORD"),
+                    host=values.get("DB_HOST"),
+                    port=values.get("DB_PORT"),
+                    db=values.get("DB_NAME"),
+                )
+            )
+        return values
 
 
-class ApplicationSettings(BaseSettings):
-    API_V1_STR: str = "/v1"
-    PROJECT_NAME: str = "Memoires"
-
-    # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
-    # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
-    # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
-        "http://localhost",
-        "http://localhost:4200",
-        "http://localhost:3000",
-        "http://localhost:8080",
-    ]
-
-    MAX_THUMBNAIL_SIZE: Tuple[int, int] = (800, 800)
-
-    class Config:
-        case_sensitive = True
+@lru_cache()
+def get_config():
+    return Config()
 
 
-class Settings(
-    PostgresSettings,
-    ApplicationSettings,
-    # MinioSettings,
-):
-    pass
-
-
-settings = Settings()
+config = get_config()

@@ -1,25 +1,16 @@
-FROM python:3.10.8-alpine3.16
-
-ENV POETRY_VERSION=1.7.1
+FROM python:3.11.6-alpine3.18
+ENV POETRY_VERSION=1.6.1
 RUN pip install "poetry==$POETRY_VERSION"
+ENV PYTHONPATH="$PYTHONPATH:/app"
 
-WORKDIR /src
+WORKDIR /app
 
-ENV PYTHONPATH="$PYTHONPATH:/src/app"
-COPY poetry.lock pyproject.toml /src/
-
-RUN apk update && apk add bash build-base postgresql-dev gcc python3-dev musl-dev jpeg-dev zlib-dev
-
+COPY poetry.lock pyproject.toml /app/
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --without dev
-COPY app /src/app/
-COPY README.md /src
-COPY CHANGELOG.md /src
-# COPY alembic.ini /src/
-# COPY alembic /src/alembic
 
-RUN env | grep BUILD_ > /src/build_envs.txt; exit 0
+COPY alembic.ini prestart.sh /app
+COPY migrations /app/migrations
+COPY app /app/app
 
-COPY prestart.sh /src/
-RUN chmod +x prestart.sh
-ENTRYPOINT ["./prestart.sh"]
+ENTRYPOINT sh prestart.sh
