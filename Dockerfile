@@ -1,25 +1,26 @@
-FROM python:3.10.8-alpine3.16
+FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
+WORKDIR /app
 
-ENV POETRY_VERSION=1.7.1
-RUN pip install "poetry==$POETRY_VERSION"
+FROM chef AS planner
+COPY ./src /app/src
+COPY Cargo.lock Cargo.toml /app/
+RUN cargo chef prepare --recipe-path recipe.json
 
-WORKDIR /src
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
 
-ENV PYTHONPATH="$PYTHONPATH:/src/app"
-COPY poetry.lock pyproject.toml /src/
+RUN cargo chef cook --release --recipe-path recipe.json
 
-RUN apk update && apk add bash build-base postgresql-dev gcc python3-dev musl-dev jpeg-dev zlib-dev
+# Build application
+#COPY . .
+COPY ./src /app/src
+COPY Cargo.lock Cargo.toml /app/
 
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction --without dev
-COPY app /src/app/
-COPY README.md /src
-COPY CHANGELOG.md /src
-# COPY alembic.ini /src/
-# COPY alembic /src/alembic
+RUN cargo build --release --bin memoires-api
 
-RUN env | grep BUILD_ > /src/build_envs.txt; exit 0
+# We do not need the Rust toolchain to run the binary!
+FROM debian:bookworm-slim AS runtime
 
-COPY prestart.sh /src/
-RUN chmod +x prestart.sh
-ENTRYPOINT ["./prestart.sh"]
+WORKDIR /app
+COPY --from=builder /app/target/release/memoires-api /usr/local/bin
+ENTRYPOINT ["/usr/local/bin/memoires-api"]
