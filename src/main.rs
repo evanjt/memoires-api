@@ -4,6 +4,8 @@ mod events;
 mod person;
 mod photo;
 use axum::{routing::get, Router};
+use config::Config;
+use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 use tracing_subscriber;
 use utoipa::OpenApi;
@@ -25,8 +27,8 @@ async fn main() {
     struct ApiDoc;
 
     // Load configuration
-    let cfg = config::Config::from_env();
-    let db: DatabaseConnection = Database::connect(&*cfg.db_url.as_ref().unwrap())
+    let config = Config::from_env();
+    let db: DatabaseConnection = Database::connect(&*config.db_url.as_ref().unwrap())
         .await
         .unwrap();
 
@@ -35,6 +37,11 @@ async fn main() {
     } else {
         println!("Could not connect to the database");
     }
+
+    // Run migrations
+    Migrator::up(&db, None)
+        .await
+        .expect("Failed to run migrations");
 
     // Build the router with routes from the plots module
     let app = Router::new()

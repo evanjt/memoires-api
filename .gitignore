@@ -1,8 +1,2 @@
-.directory
-.kdev4/
-database.db
-memoires.kdev4
-__pycache__
-*.kdev4
-.env
-*.kate-swp
+/target
+/migration/target
