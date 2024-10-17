@@ -15,8 +15,8 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Person::Id).uuid().primary_key())
                     .col(ColumnDef::new(Person::FirstNames).string().not_null())
                     .col(ColumnDef::new(Person::LastNames).string().not_null())
-                    .col(ColumnDef::new(Person::CreatedOn).timestamp().not_null())
-                    .col(ColumnDef::new(Person::UpdatedOn).timestamp().not_null())
+                    .col(ColumnDef::new(Person::CreatedOn).date_time().not_null())
+                    .col(ColumnDef::new(Person::UpdatedOn).date_time().not_null())
                     .col(
                         ColumnDef::new(Person::Email)
                             .string()
@@ -36,10 +36,10 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Event::Id).uuid().primary_key())
                     .col(ColumnDef::new(Event::Title).string().unique_key())
                     .col(ColumnDef::new(Event::Description).text())
-                    .col(ColumnDef::new(Event::StartTime).timestamp())
-                    .col(ColumnDef::new(Event::EndTime).timestamp().not_null())
-                    .col(ColumnDef::new(Event::CreatedOn).timestamp().not_null())
-                    .col(ColumnDef::new(Event::UpdatedOn).timestamp().not_null())
+                    .col(ColumnDef::new(Event::StartTime).date_time().not_null())
+                    .col(ColumnDef::new(Event::EndTime).date_time().null())
+                    .col(ColumnDef::new(Event::CreatedOn).date_time().not_null())
+                    .col(ColumnDef::new(Event::UpdatedOn).date_time().not_null())
                     .to_owned(),
             )
             .await?;

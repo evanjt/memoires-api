@@ -1,9 +1,6 @@
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use sea_orm::{FromQueryResult, NotSet, Set};
-use serde::de::DeserializeOwned;
-use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
-use serde_with::rust::double_option;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -12,8 +9,8 @@ pub struct Event {
     id: Uuid,
     title: Option<String>,
     description: Option<String>,
-    start_time: NaiveDateTime,
-    end_time: Option<NaiveDateTime>,
+    start_time: DateTime<Utc>,
+    end_time: Option<DateTime<Utc>>,
 }
 
 impl Event {
@@ -22,18 +19,18 @@ impl Event {
             id: obj.id,
             title: obj.title,
             description: obj.description,
-            start_time: obj.start_time,
-            end_time: obj.end_time,
+            start_time: obj.start_time.and_utc(),
+            end_time: obj.end_time.map(|dt| dt.and_utc()),
         }
     }
 }
 
-#[derive(ToSchema, Serialize, Deserialize)]
+#[derive(ToSchema, Serialize, Deserialize, Debug)]
 pub struct CreateEvent {
     pub title: Option<String>,
     pub description: Option<String>,
-    pub start_time: NaiveDateTime,
-    pub end_time: Option<NaiveDateTime>,
+    pub start_time: DateTime<Utc>,
+    pub end_time: Option<DateTime<Utc>>,
 }
 
 impl From<CreateEvent> for super::db::ActiveModel {
@@ -42,8 +39,8 @@ impl From<CreateEvent> for super::db::ActiveModel {
             id: Set(Uuid::new_v4()),
             title: Set(obj.title),
             description: Set(obj.description),
-            start_time: Set(obj.start_time),
-            end_time: Set(obj.end_time),
+            start_time: Set(obj.start_time.naive_utc()),
+            end_time: Set(obj.end_time.map(|dt| dt.naive_utc())),
             created_on: Set(chrono::Utc::now().naive_utc()),
             updated_on: Set(chrono::Utc::now().naive_utc()),
         }
@@ -69,13 +66,13 @@ pub struct UpdateEvent {
         skip_serializing_if = "Option::is_none",
         with = "::serde_with::rust::double_option"
     )]
-    pub start_time: Option<Option<NaiveDateTime>>,
+    pub start_time: Option<Option<DateTime<Utc>>>,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         with = "::serde_with::rust::double_option"
     )]
-    pub end_time: Option<Option<NaiveDateTime>>,
+    pub end_time: Option<Option<DateTime<Utc>>>,
 }
 impl UpdateEvent {
     pub fn into_active_model(self, id: Uuid) -> super::db::ActiveModel {
@@ -98,12 +95,12 @@ impl UpdateEvent {
                 None => NotSet,
             },
             start_time: match self.start_time {
-                Some(Some(start_time)) => Set(start_time),
+                Some(Some(start_time)) => Set(start_time.naive_utc()),
                 Some(None) => NotSet, // Cannot set to None
                 None => NotSet,
             },
             end_time: match self.end_time {
-                Some(Some(value)) => Set(Some(value)),
+                Some(Some(value)) => Set(Some(value.naive_utc())),
                 Some(None) => Set(None),
                 None => NotSet,
             },
@@ -119,8 +116,8 @@ impl From<super::db::Model> for Event {
             id: obj.id,
             title: obj.title,
             description: obj.description,
-            start_time: obj.start_time,
-            end_time: obj.end_time,
+            start_time: obj.start_time.and_utc(),
+            end_time: obj.end_time.map(|dt| dt.and_utc()),
         }
     }
 }

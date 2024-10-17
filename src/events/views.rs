@@ -2,22 +2,17 @@ use crate::common::filter::{apply_filters, parse_range};
 use crate::common::models::FilterOptions;
 use crate::common::pagination::calculate_content_range;
 use crate::common::sort::generic_sort;
-use crate::events::db::ActiveModel as EventActiveModel;
 use crate::events::db::Entity as EventDB;
-use crate::events::models::Event;
-use crate::events::models::{CreateEvent, UpdateEvent};
+use crate::events::models::{CreateEvent, Event, UpdateEvent};
 use axum::response::IntoResponse;
-use axum::{extract::Path, http::StatusCode};
-use axum::{extract::Query, http::header::HeaderMap, routing, Router};
-use axum::{extract::State, Json};
-use sea_orm::prelude::*;
-use sea_orm::Condition;
-use sea_orm::EntityTrait;
-use sea_orm::{query::*, DatabaseConnection};
-use sea_orm::{ActiveModelTrait, Set};
-use sea_query::{Alias, Expr};
+use axum::{
+    extract::{Path, Query, State},
+    http::StatusCode,
+    routing, Json, Router,
+};
+use sea_orm::{prelude::*, query::*, ActiveModelTrait, Condition, DatabaseConnection, EntityTrait};
+use sea_query::Expr;
 use serde_json::json;
-use std::collections::HashMap;
 use uuid::Uuid;
 
 const RESOURCE_NAME: &str = "events";
@@ -93,8 +88,9 @@ pub async fn create_one(
     Json(payload): Json<CreateEvent>,
 ) -> impl IntoResponse {
     // Create a new ActiveModel for the event
+    println!("Payload: {:?}", payload);
     let new_event: super::db::ActiveModel = super::db::ActiveModel::from(payload);
-
+    println!("New event: {:?}", new_event);
     // Insert the new event into the database
     match new_event.insert(&db).await {
         Ok(event) => (StatusCode::CREATED, Json(Event::from(event))).into_response(),
