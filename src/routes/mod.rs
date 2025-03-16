@@ -2,13 +2,13 @@ mod events;
 mod person;
 mod photo;
 
-use crate::config::Config;
-use axum::{extract::DefaultBodyLimit, Router};
+use axum::{Router, extract::DefaultBodyLimit};
 use sea_orm::DatabaseConnection;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_scalar::{Scalar, Servable};
 
+// use crate::config::Config;
 // use axum_keycloak_auth::{instance::KeycloakAuthInstance, instance::KeycloakConfig, Url};
 // use std::sync::Arc;
 
@@ -40,7 +40,7 @@ pub fn build_router(db: &DatabaseConnection) -> Router {
     //     }
     // }
 
-    let config: Config = Config::from_env();
+    // let config: Config = Config::from_env();
 
     // let keycloak_instance: Arc<KeycloakAuthInstance> = Arc::new(KeycloakAuthInstance::new(
     //     KeycloakConfig::builder()
@@ -53,9 +53,8 @@ pub fn build_router(db: &DatabaseConnection) -> Router {
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .merge(crate::common::views::router(db)) // Root routes
         .nest("/api/events", events::views::router(db, None))
-        .nest("/api/perons", person::views::router(db, None))
-        .nest("/api/photos", photo::views::router(db, None))
-        .nest("/api/gnss", gnss::views::router(db, None))
+        // .nest("/api/persons", person::views::router(db, None))
+        // .nest("/api/photos", photo::views::router(db, None))
         .layer(DefaultBodyLimit::max(30 * 1024 * 1024))
         .split_for_parts();
 
