@@ -13,24 +13,28 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "crate::events::db::Entity")]
+    #[sea_orm(has_many = "crate::routes::events::db::Entity")]
     Event,
-    #[sea_orm(has_many = "crate::person::events::db::Entity")]
+    #[sea_orm(has_many = "crate::routes::person::events::db::Entity")]
     PersonEvents,
 }
 
-impl Related<crate::person::events::db::Entity> for Entity {
+impl Related<crate::routes::person::events::db::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::PersonEvents.def()
     }
 }
 
-impl Related<crate::events::db::Entity> for Entity {
+impl Related<crate::routes::events::db::Entity> for Entity {
     fn to() -> RelationDef {
-        crate::person::events::db::Relation::Event.def()
+        crate::routes::person::events::db::Relation::Event.def()
     }
     fn via() -> Option<RelationDef> {
-        Some(crate::person::events::db::Relation::Person.def().rev())
+        Some(
+            crate::routes::person::events::db::Relation::Person
+                .def()
+                .rev(),
+        )
     }
 }
 

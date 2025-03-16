@@ -1,17 +1,9 @@
 mod common;
 mod config;
-mod events;
-mod person;
-mod photo;
-use axum::{routing::get, Router};
-use config::Config;
+mod routes;
+
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
-use tracing_subscriber;
-use utoipa::OpenApi;
-use utoipa_redoc::{Redoc, Servable};
-use utoipa_scalar::{Scalar, Servable as ScalarServable};
-use utoipa_swagger_ui::SwaggerUi;
 
 #[tokio::main]
 async fn main() {
@@ -19,16 +11,10 @@ async fn main() {
     tracing_subscriber::fmt::init();
     println!("Starting server...");
 
-    #[derive(OpenApi)]
-    #[openapi(
-        paths(events::views::get_all, common::views::healthz,),
-        components(schemas(common::models::FilterOptions, events::models::Event,))
-    )]
-    struct ApiDoc;
-
     // Load configuration
-    let config = Config::from_env();
-    let db: DatabaseConnection = Database::connect(&*config.db_url.as_ref().unwrap())
+    let config: config::Config = config::Config::from_env();
+
+    let db: DatabaseConnection = Database::connect(config.db_url.as_ref().unwrap())
         .await
         .unwrap();
 
@@ -43,20 +29,27 @@ async fn main() {
         .await
         .expect("Failed to run migrations");
 
-    // Build the router with routes from the plots module
-    let app = Router::new()
-        .route("/healthz", get(common::views::healthz))
-        .nest("/api/events", events::views::router(db.clone()))
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .merge(Redoc::with_url("/redoc", ApiDoc::openapi()))
-        .merge(Scalar::with_url("/scalar", ApiDoc::openapi()));
+    // Left commented here in case of need to downgrade
+    // Migrator::down(&db, Some(1))  // Downgrade one migration step
+    //     .await
+    //     .expect("Failed to run downgrade migration");
 
-    // Bind to an address and serve the application
+    println!("DB migrations complete");
+
+    println!(
+        "Starting server {} ({} deployment) ...",
+        config.app_name,
+        config.deployment.to_uppercase()
+    );
+
     let addr: std::net::SocketAddr = "0.0.0.0:3000".parse().unwrap();
-    println!("Listening on {}", addr);
+    println!("Listening on {addr}");
 
-    // Run the server (correct axum usage without `hyper::Server`)
-    axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)
-        .await
-        .unwrap();
+    let router = routes::build_router(&db);
+    axum::serve(
+        tokio::net::TcpListener::bind(addr).await.unwrap(),
+        router.into_make_service(),
+    )
+    .await
+    .unwrap();
 }
